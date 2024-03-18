@@ -1,0 +1,23 @@
+:root {
+    --input-container-bg: #3e9def1a;
+    --input-border: #7493bc;
+    // --input-border-focus: #002767;
+    // --input-highlight: #6a3d00;
+    --input-highlight: #0050b6;
+    --input-bg-hightlight: #0050b6;
+    --input-placeholder-color: #a1acbd;
+    --bg-primary: #ffffff;
+    --bg-secondary: #effaff;
+    --text-primary: #000000;
+    --text-secondary: #002767;
+    --text-accent: #ffffff;
+    --button-bg: var(--input-highlight);
+    --button-bg-hover: #002b88;
+    --button-text: var(--text-accent);
+    --button-bg-active: #456eda; //var(--text-secondary);
+    --separator-color: #7493bc60;
+    --error-red: #ef4741;
+    --params-button-color: #0050b660;
+    --params-button-bg-hover: #0050b640;
+    --above-layout-bg: #00000040;
+}

@@ -1,0 +1,54 @@
+.wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3em;
+    padding: 1.5em;
+    background: var(--bg-primary);
+    border: 1px solid var(--input-border);
+    border-radius: 0.5em;
+
+    .title {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .close {
+        position: absolute;
+        top: 0.5em;
+        right: 0.5em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2em;
+        height: 2em;
+        padding: 0;
+        color: var(--params-button-color);
+        background: none;
+        border: none;
+        transition: all 300ms;
+
+        &-icon {
+            path {
+                fill: currentColor;
+            }
+        }
+
+        &:hover {
+            color: var(--button-bg-hover);
+        }
+    }
+
+    .form {
+        display: grid;
+        grid-template-columns: auto minmax(15em, 1fr);
+        column-gap: 1em;
+        row-gap: 1.5em;
+
+        .submit {
+            grid-column: span 2;
+            padding: 0.5em;
+        }
+    }
+}
