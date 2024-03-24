@@ -1,15 +1,21 @@
 import { useCallback } from "react";
 import { Flags, Schema, ValidationError } from "yup";
-import { FormValues, parseFormValues } from ".";
+import { FieldSchema, FieldValue, ParsedFieldValue } from "../types";
+import { parseFieldValue, parseValidationErrors } from "../utils";
 
 export const useYupValidationResolver = (
-    validationSchema: Schema<FormValues, unknown, unknown, Flags>
+    fieldSchema: FieldSchema,
+    validationSchema: Schema<ParsedFieldValue, unknown, unknown, Flags>
 ) =>
     useCallback(
-        async (data: FormValues) => {
+        async (data: FieldValue) => {
             try {
+                console.log({
+                    data,
+                    parsed: parseFieldValue(data, fieldSchema),
+                });
                 const values = await validationSchema.validate(
-                    parseFormValues(data),
+                    parseFieldValue(data, fieldSchema),
                     {
                         abortEarly: false,
                     }
@@ -33,9 +39,11 @@ export const useYupValidationResolver = (
                         {}
                     ),
                 };
+
+                result.errors = parseValidationErrors(result.errors);
                 console.log(result);
                 return result;
             }
         },
-        [validationSchema]
+        [fieldSchema, validationSchema]
     );

@@ -1,35 +1,28 @@
 import { Dispatch, createContext } from "react";
-import { ArrayField, FormField, ObjectField } from "../../types";
-import { IN_ARRAY_FIELD_VALUE } from "./const";
 import cloneDeep from "lodash.clonedeep";
+import { ArrayFieldSchema, FieldSchema, ObjectFieldSchema } from "../types";
+import { IN_ARRAY_FIELD_VALUE } from "../const";
 
-export type SchemaState = ObjectField;
+export type SchemaState = ObjectFieldSchema;
 
 export type SchemaAction = { name: string } & (
     | {
           type: "add";
-          schema: FormField;
+          schema: FieldSchema;
       }
     | { type: "remove" }
-    | { type: "change"; schema: Partial<FormField> }
+    | { type: "change"; schema: Partial<FieldSchema> }
 );
 
-export type DispatchSchemaContextType = Dispatch<SchemaAction>;
-export type SchemaFormParamsContextType =
-    | ((initialSchema: FormField, name?: string) => () => void)
-    | undefined;
+export type DispatchSchemaContextType = Dispatch<SchemaAction> | undefined;
 
-export const DispatchSchemaContext = createContext<DispatchSchemaContextType>(
-    () => undefined
-);
-
-export const SchemaFormParamsContext =
-    createContext<SchemaFormParamsContextType>(undefined);
+export const DispatchSchemaContext =
+    createContext<DispatchSchemaContextType>(undefined);
 
 export const extractSchemaField = (
-    schema: ObjectField | ArrayField,
+    schema: ObjectFieldSchema | ArrayFieldSchema,
     name: string
-): FormField => {
+): FieldSchema => {
     const splitName = name.split(".");
     const currentFieldName = splitName[0];
 
@@ -41,7 +34,7 @@ export const extractSchemaField = (
         }
 
         return extractSchemaField(
-            currentField as ObjectField | ArrayField,
+            currentField as ObjectFieldSchema | ArrayFieldSchema,
             splitName.slice(1).join(".")
         );
     }
@@ -68,7 +61,7 @@ export const extractSchemaField = (
     }
 
     return extractSchemaField(
-        currentField as ObjectField | ArrayField,
+        currentField as ObjectFieldSchema | ArrayFieldSchema,
         splitName.slice(2).join(".")
     );
 };
@@ -76,7 +69,7 @@ export const extractSchemaField = (
 const addFieldToSchema = (
     state: SchemaState,
     name: string,
-    field: FormField
+    field: FieldSchema
 ) => {
     const newState = cloneDeep(state);
     const splitName = name.split(".");
@@ -117,7 +110,7 @@ const removeFieldFromSchema = (state: SchemaState, name: string) => {
 const changeFieldInSchema = (
     state: SchemaState,
     name: string,
-    field: Partial<FormField>
+    field: Partial<FieldSchema>
 ) => {
     const newState = cloneDeep(state);
     const splitName = name.split(".");
@@ -135,7 +128,7 @@ const changeFieldInSchema = (
         : newState;
 
     if (parentSchema.type === "array") {
-        parentSchema.items = { ...parentSchema.items, ...field } as FormField;
+        parentSchema.items = { ...parentSchema.items, ...field } as FieldSchema;
 
         return newState;
     }
@@ -143,7 +136,7 @@ const changeFieldInSchema = (
         parentSchema.items[currentName] = {
             ...parentSchema.items[currentName],
             ...field,
-        } as FormField;
+        } as FieldSchema;
 
         return newState;
     }

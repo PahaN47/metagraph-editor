@@ -1,25 +1,19 @@
-import { ArrayField } from "../../../../types";
 import {
     UseFieldArrayRemove,
     useFieldArray,
     useFormContext,
 } from "react-hook-form";
 import { useCallback, useContext, useMemo } from "react";
-import { NumberInputField } from "../NumberInput";
-import { StringInputField } from "../StringInput";
-import { BoolInputField } from "../BoolInput";
-import { DateInputField } from "../DateInput";
-import { ObjectInputField } from "../ObjectInput";
 import { InputContainer } from "../InputContainer";
-import {
-    IN_ARRAY_FIELD_VALUE,
-    SchemaFormParamsContext,
-    getFieldDefaultValue,
-} from "../..";
+import { getComponent } from "../../utils/getComponent";
+import { ArrayFieldSchema, ValidationErrors } from "../../types";
+import { IN_ARRAY_FIELD_VALUE } from "../../const";
+import { schemaToFieldValue } from "../../utils";
+import { SchemaFormParamsContext } from "../../context";
 
 export type ArrayInputFieldProps = {
     className?: string;
-    schemaField: ArrayField;
+    fieldSchema: ArrayFieldSchema;
     name: string;
     onRemove?: () => void;
 };
@@ -29,45 +23,32 @@ const makeHandleRemove = (remove: UseFieldArrayRemove, index: number) => () =>
 
 export const ArrayInputField = ({
     className,
-    schemaField,
+    fieldSchema,
     name,
     onRemove,
 }: ArrayInputFieldProps) => {
-    const { control } = useFormContext();
+    const {
+        control,
+        formState: { errors },
+    } = useFormContext();
+
     const { fields, append, remove } = useFieldArray({
         control,
         name,
     });
-    const items = useMemo(() => schemaField.items, [schemaField.items]);
+    const items = useMemo(() => fieldSchema.items, [fieldSchema.items]);
     const handleAppend = useCallback(
-        () => append({ [IN_ARRAY_FIELD_VALUE]: getFieldDefaultValue(items) }),
+        () => append({ [IN_ARRAY_FIELD_VALUE]: schemaToFieldValue(items) }),
         [append, items]
     );
 
     const makeHandleParams = useContext(SchemaFormParamsContext);
     const onParams = useMemo(
-        () => makeHandleParams?.(schemaField, name),
-        [makeHandleParams, name, schemaField]
+        () => makeHandleParams?.(fieldSchema, name),
+        [makeHandleParams, name, fieldSchema]
     );
 
-    const ChildInput = useMemo(() => {
-        switch (items.type) {
-            case "int":
-            case "float":
-                return NumberInputField;
-            case "string":
-                return StringInputField;
-            case "bool":
-                return BoolInputField;
-            case "date":
-                return DateInputField;
-            case "array":
-                return ArrayInputField;
-            case "object":
-            default:
-                return ObjectInputField;
-        }
-    }, [items.type]);
+    const ChildInput = useMemo(() => getComponent(items.type), [items.type]);
 
     return (
         <InputContainer
@@ -76,11 +57,12 @@ export const ArrayInputField = ({
             onAppend={handleAppend}
             onParams={onParams}
             onRemove={onRemove}
+            error={(errors as ValidationErrors)[name]?.message}
         >
             {fields.map((field, index) => (
                 <ChildInput
                     key={field.id}
-                    schemaField={items as never}
+                    fieldSchema={items as never}
                     name={`${name}.${index}.${IN_ARRAY_FIELD_VALUE}`}
                     onRemove={makeHandleRemove(remove, index)}
                 />

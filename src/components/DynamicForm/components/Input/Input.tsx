@@ -5,7 +5,6 @@ import {
     useId,
     useMemo,
 } from "react";
-import { PrimitiveField } from "../../../../types";
 import classNames from "classnames";
 import cn from "./styles.module.scss";
 import { getFieldShortName } from "../../utils";
@@ -17,11 +16,12 @@ import {
     TextIcon,
 } from "../../../../assets/icons";
 import { Button } from "../../../Button";
+import { PrimitiveFieldSchema } from "../../types";
 
 type InputProps = {
     className?: string;
     id?: string;
-    fieldType: PrimitiveField["type"];
+    fieldType: PrimitiveFieldSchema["type"];
     value?: string;
     checked?: boolean;
     onChange?: ChangeEventHandler<HTMLInputElement>;

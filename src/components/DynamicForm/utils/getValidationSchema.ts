@@ -15,17 +15,17 @@ import {
     string,
 } from "yup";
 import {
-    ArrayField,
-    BoolField,
-    DateField,
-    FloatField,
-    FormField,
-    IntField,
-    ObjectField,
-    StringField,
+    ArrayFieldSchema,
+    BoolFieldSchema,
+    DateFieldSchema,
+    FieldSchema,
+    FloatFieldSchema,
+    IntFieldSchema,
+    ObjectFieldSchema,
+    StringFieldSchema,
 } from "../types";
 
-export const generateNumberSchema = ({
+export const getValidationNumberSchema = ({
     type,
     min,
     max,
@@ -35,7 +35,7 @@ export const generateNumberSchema = ({
     negative,
     defaultValue,
     nullable,
-}: IntField | FloatField) => {
+}: IntFieldSchema | FloatFieldSchema) => {
     let schema = number().strict() as unknown as NumberSchema<
         number | null | undefined,
         AnyObject,
@@ -67,7 +67,7 @@ export const generateNumberSchema = ({
         schema = schema.default(defaultValue);
     }
     if (nullable) {
-        schema = schema.nullable();
+        schema = schema.optional();
     } else {
         schema = schema.required();
     }
@@ -75,7 +75,7 @@ export const generateNumberSchema = ({
     return schema;
 };
 
-export const generateStringSchema = ({
+export const getStringValidationSchema = ({
     length,
     min,
     max,
@@ -87,7 +87,7 @@ export const generateStringSchema = ({
     uppercase,
     defaultValue,
     nullable,
-}: StringField) => {
+}: StringFieldSchema) => {
     let schema = string().strict() as unknown as StringSchema<
         string | null | undefined,
         AnyObject,
@@ -128,7 +128,7 @@ export const generateStringSchema = ({
         schema = schema.default(defaultValue);
     }
     if (nullable) {
-        schema = schema.nullable();
+        schema = schema.optional();
     } else {
         schema = schema.required();
     }
@@ -136,8 +136,11 @@ export const generateStringSchema = ({
     return schema;
 };
 
-export const generateBoolSchema = ({ defaultValue, nullable }: BoolField) => {
-    let schema = boolean() as unknown as BooleanSchema<
+export const getBoolValidationSchema = ({
+    defaultValue,
+    nullable,
+}: BoolFieldSchema) => {
+    let schema = boolean().strict() as unknown as BooleanSchema<
         boolean | null | undefined,
         AnyObject,
         boolean,
@@ -148,7 +151,7 @@ export const generateBoolSchema = ({ defaultValue, nullable }: BoolField) => {
         schema = schema.default(defaultValue);
     }
     if (nullable) {
-        schema = schema.nullable();
+        schema = schema.optional();
     } else {
         schema = schema.required();
     }
@@ -156,12 +159,12 @@ export const generateBoolSchema = ({ defaultValue, nullable }: BoolField) => {
     return schema;
 };
 
-export const generateDateSchema = ({
+export const getDateValidationSchema = ({
     min,
     max,
     defaultValue,
     nullable,
-}: DateField) => {
+}: DateFieldSchema) => {
     let schema = date() as unknown as DateSchema<
         Date | null | undefined,
         AnyObject,
@@ -176,10 +179,10 @@ export const generateDateSchema = ({
         schema = schema.max(max);
     }
     if (defaultValue != null) {
-        schema = schema.default(defaultValue);
+        schema = schema.default(new Date(defaultValue));
     }
     if (nullable) {
-        schema = schema.nullable();
+        schema = schema.optional();
     } else {
         schema = schema.required();
     }
@@ -187,17 +190,17 @@ export const generateDateSchema = ({
     return schema;
 };
 
-export const generateArraySchema = ({
+export const getArrayValidationSchema = ({
     length,
     min,
     max,
     defaultValue,
     nullable,
     items,
-}: ArrayField) => {
-    let schema = array().of(
-        generateValidationSchema(items)
-    ) as unknown as ArraySchema<
+}: ArrayFieldSchema) => {
+    let schema = array()
+        .strict()
+        .of(getValidationSchema(items)) as unknown as ArraySchema<
         (object | null)[] | null | undefined,
         AnyObject,
         (object | null)[] | null | undefined,
@@ -219,7 +222,7 @@ export const generateArraySchema = ({
         );
     }
     if (nullable) {
-        schema = schema.nullable();
+        schema = schema.optional();
     } else {
         schema = schema.required();
     }
@@ -227,19 +230,19 @@ export const generateArraySchema = ({
     return schema;
 };
 
-export const generateObjectSchema = ({
+export const getObjectValidationSchema = ({
     defaultValue,
     nullable,
     items,
-}: ObjectField) => {
+}: ObjectFieldSchema) => {
     const children = Object.fromEntries(
         Object.entries(items).map(([key, item]) => [
             key,
-            generateValidationSchema(item),
+            getValidationSchema(item),
         ])
     );
-    let schema = object(children) as unknown as ObjectSchema<
-        object | null,
+    let schema = object(children).strict() as unknown as ObjectSchema<
+        object | null | undefined,
         AnyObject,
         AnyObject,
         "d"
@@ -249,7 +252,7 @@ export const generateObjectSchema = ({
         schema = schema.default(defaultValue);
     }
     if (nullable) {
-        schema = schema.nullable();
+        schema = schema.optional();
     } else {
         schema = schema.required();
     }
@@ -257,21 +260,21 @@ export const generateObjectSchema = ({
     return schema;
 };
 
-export const generateValidationSchema = (field: FormField) => {
+export const getValidationSchema = (field: FieldSchema) => {
     switch (field.type) {
         case "int":
         case "float":
-            return generateNumberSchema(field);
+            return getValidationNumberSchema(field);
         case "string":
-            return generateStringSchema(field);
+            return getStringValidationSchema(field);
         case "bool":
-            return generateBoolSchema(field);
+            return getBoolValidationSchema(field);
         case "date":
-            return generateDateSchema(field);
+            return getDateValidationSchema(field);
         case "array":
-            return generateArraySchema(field);
+            return getArrayValidationSchema(field);
         case "object":
         default:
-            return generateObjectSchema(field);
+            return getObjectValidationSchema(field);
     }
 };

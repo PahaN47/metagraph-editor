@@ -1,8 +1,11 @@
 import { useCallback, useMemo, useReducer, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import cn from "./styles.module.scss";
-import { getFieldDefaultValue, getFieldsFromSchema } from "./utils";
-import { FormField, ObjectField } from "../../types";
+import {
+    getFieldsFromSchema,
+    getValidationSchema,
+    schemaToFieldValue,
+} from "./utils";
 import { InputContainer } from "./components/InputContainer";
 import {
     DispatchSchemaContext,
@@ -11,13 +14,17 @@ import {
 } from "./context";
 import { AboveLayout } from "../AboveLayout/AboveLayout";
 import { SchemaForm } from "./components/SchemaForm";
+import { FieldSchema, ObjectFieldSchema } from "./types";
+import { useYupValidationResolver } from "./hooks";
+import { Schema } from "yup";
 
-const initialSchema: ObjectField = {
+const initialSchema: ObjectFieldSchema = {
     type: "object",
     items: {
         age: {
             type: "int",
             value: 18,
+            min: 10,
         },
         salary: {
             type: "float",
@@ -34,7 +41,7 @@ const initialSchema: ObjectField = {
         },
         startDate: {
             type: "date",
-            value: () => new Date(),
+            value: "2024-02-29",
         },
         basicElements: {
             type: "array",
@@ -67,7 +74,7 @@ const initialSchema: ObjectField = {
         },
         dateArray: {
             type: "array",
-            value: () => [new Date(), new Date(), new Date()],
+            value: () => ["2024-03-24", "2024-03-25", "2024-03-26"],
             items: {
                 type: "date",
             },
@@ -128,7 +135,7 @@ const initialSchema: ObjectField = {
         },
         objectArray: {
             type: "array",
-            value: () => [{ one: 1, three: new Date() }, { one: 2 }],
+            value: () => [{ one: 1, three: "2002-05-27" }, { one: 2 }],
             items: {
                 type: "object",
                 items: {
@@ -148,15 +155,26 @@ const initialSchema: ObjectField = {
 };
 
 export const DynamicForm = () => {
-    const values = useMemo(() => getFieldDefaultValue(initialSchema), []);
+    const values = useMemo(() => schemaToFieldValue(initialSchema), []);
     const [schema, dispatchSchema] = useReducer(schemaReducer, initialSchema);
     const [schemaFormName, setSchemaFormName] = useState<string | undefined>();
     const [schemaFormParams, setSchemaFormParams] = useState<
-        FormField | undefined
+        FieldSchema | undefined
     >();
+
+    const validationSchema = useMemo(
+        () => getValidationSchema(schema),
+        [schema]
+    );
+
+    const validationResolver = useYupValidationResolver(
+        schema,
+        validationSchema as Schema
+    );
 
     const { handleSubmit, register, ...formContext } = useForm({
         defaultValues: values as object,
+        resolver: validationResolver,
     });
 
     const onSubmit = useCallback(
@@ -167,7 +185,7 @@ export const DynamicForm = () => {
     const children = useMemo(() => getFieldsFromSchema(schema), [schema]);
 
     const makeHandleSchemaFormParams = useCallback(
-        (initialSchema: FormField, name?: string) => () => {
+        (initialSchema: FieldSchema, name?: string) => () => {
             setSchemaFormParams(initialSchema);
             setSchemaFormName(name);
         },
@@ -180,7 +198,7 @@ export const DynamicForm = () => {
     }, []);
 
     const handleSchemaFormSubmit = useCallback(
-        (newSchema: FormField) => {
+        (newSchema: FieldSchema) => {
             console.log(newSchema);
             dispatchSchema({
                 type: "change",
@@ -215,7 +233,7 @@ export const DynamicForm = () => {
             </DispatchSchemaContext.Provider>
             <AboveLayout visible={!!schemaFormParams}>
                 <SchemaForm
-                    initialSchema={schemaFormParams as FormField}
+                    initialSchema={schemaFormParams}
                     name={schemaFormName}
                     onSubmit={handleSchemaFormSubmit}
                     onClose={handleSchemaFormClose}

@@ -5,11 +5,15 @@ import {
     useContext,
     useMemo,
 } from "react";
-import { FloatField, IntField } from "../../../../types";
 import { useFormContext } from "react-hook-form";
 import { Input } from "../Input";
 import { getNumberInputLimits } from "./utils";
-import { SchemaFormParamsContext } from "../..";
+import {
+    FloatFieldSchema,
+    IntFieldSchema,
+    ValidationErrors,
+} from "../../types";
+import { SchemaFormParamsContext } from "../../context";
 
 export type NumberInputProps = {
     className?: string;
@@ -31,7 +35,7 @@ export type NumberInputProps = {
 };
 
 export type NumberInputFieldProps = {
-    schemaField: IntField | FloatField;
+    fieldSchema: IntFieldSchema | FloatFieldSchema;
     name: string;
     onRemove?: () => void;
 };
@@ -81,32 +85,35 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 );
 
 export const NumberInputField = ({
-    schemaField,
+    fieldSchema,
     name,
     onRemove,
 }: NumberInputFieldProps) => {
-    const { register } = useFormContext();
+    const {
+        register,
+        formState: { errors },
+    } = useFormContext();
     const makeHandleParams = useContext(SchemaFormParamsContext);
     const onParams = useMemo(
-        () => makeHandleParams?.(schemaField, name),
-        [makeHandleParams, name, schemaField]
+        () => makeHandleParams?.(fieldSchema, name),
+        [makeHandleParams, name, fieldSchema]
     );
-    const isInt = schemaField.type === "int";
+    const isInt = fieldSchema.type === "int";
 
     return (
         <NumberInput
             {...register(name)}
             isInt={isInt}
-            // error={fieldState.error?.message}
+            error={(errors as ValidationErrors)[name]?.message}
             onParams={onParams}
             onRemove={onRemove}
-            min={schemaField.min}
-            max={schemaField.max}
-            lessThan={schemaField.lessThan}
-            moreThan={schemaField.moreThan}
-            positive={schemaField.positive}
-            negative={schemaField.negative}
-            nullable={schemaField.nullable}
+            min={fieldSchema.min}
+            max={fieldSchema.max}
+            lessThan={fieldSchema.lessThan}
+            moreThan={fieldSchema.moreThan}
+            positive={fieldSchema.positive}
+            negative={fieldSchema.negative}
+            nullable={fieldSchema.nullable}
         />
     );
 };

@@ -1,4 +1,6 @@
-import { IN_ARRAY_FIELD_VALUE_REGEX_INNER, getFieldsFromSchema } from "../..";
+import { IN_ARRAY_FIELD_VALUE_REGEX_INNER } from "../../const";
+import { FieldSchema, ObjectFieldSchema } from "../../types";
+import { getFieldsFromSchema } from "../../utils";
 import {
     ARRAY_FORM_FIELD_SCHEMA,
     BOOL_FORM_FIELD_SCHEMA,
@@ -8,7 +10,6 @@ import {
     OBJECT_FIELD_SCHEMA,
     STRING_FORM_FIELD_SCHEMA,
 } from "./const";
-import { FormField, ObjectField } from "../../../../types";
 
 export const parseName = (name?: string) =>
     name?.replace(
@@ -19,7 +20,7 @@ export const parseName = (name?: string) =>
         "[i]"
     );
 
-export const getSchemaFormSchema = (schemaType: FormField["type"]) => {
+export const getSchemaFormSchema = (schemaType: FieldSchema["type"]) => {
     switch (schemaType) {
         case "int":
             return INT_FORM_FIELD_SCHEMA;
@@ -39,6 +40,9 @@ export const getSchemaFormSchema = (schemaType: FormField["type"]) => {
     }
 };
 
-export const getSchemaInputs = (fieldSchema: ObjectField) => {
-    return getFieldsFromSchema(fieldSchema);
+export const getSchemaInputs = (fieldSchema: ObjectFieldSchema) => {
+    const filteredFieldSchema = Object.fromEntries(
+        Object.entries(fieldSchema).filter(([key]) => key !== "value")
+    ) as ObjectFieldSchema;
+    return getFieldsFromSchema(filteredFieldSchema);
 };

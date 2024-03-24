@@ -5,10 +5,10 @@ import {
     useContext,
     useMemo,
 } from "react";
-import { StringField } from "../../../../types";
 import { useFormContext } from "react-hook-form";
 import { Input } from "../Input";
-import { SchemaFormParamsContext } from "../..";
+import { StringFieldSchema, ValidationErrors } from "../../types";
+import { SchemaFormParamsContext } from "../../context";
 
 export type StringInputProps = {
     className?: string;
@@ -28,7 +28,7 @@ export type StringInputProps = {
 };
 
 export type StringInputFieldProps = {
-    schemaField: StringField;
+    fieldSchema: StringFieldSchema;
     name: string;
     onRemove?: () => void;
 };
@@ -57,28 +57,31 @@ export const StringInput = forwardRef<HTMLInputElement, StringInputProps>(
 );
 
 export const StringInputField = ({
-    schemaField,
+    fieldSchema,
     name,
     onRemove,
 }: StringInputFieldProps) => {
-    const { register } = useFormContext();
+    const {
+        register,
+        formState: { errors },
+    } = useFormContext();
     const makeHandleParams = useContext(SchemaFormParamsContext);
     const onParams = useMemo(
-        () => makeHandleParams?.(schemaField, name),
-        [makeHandleParams, name, schemaField]
+        () => makeHandleParams?.(fieldSchema, name),
+        [makeHandleParams, name, fieldSchema]
     );
 
     return (
         <StringInput
             {...register(name)}
-            // error={fieldState.error?.message}
+            error={(errors as ValidationErrors)[name]?.message}
             onRemove={onRemove}
             onParams={onParams}
-            minLength={schemaField.min}
-            maxLength={schemaField.max}
-            lowercase={schemaField.lowercase}
-            uppercase={schemaField.uppercase}
-            nullable={schemaField.nullable}
+            minLength={fieldSchema.min}
+            maxLength={fieldSchema.max}
+            lowercase={fieldSchema.lowercase}
+            uppercase={fieldSchema.uppercase}
+            nullable={fieldSchema.nullable}
         />
     );
 };

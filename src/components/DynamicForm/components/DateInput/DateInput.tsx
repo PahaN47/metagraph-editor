@@ -5,10 +5,10 @@ import {
     useContext,
     useMemo,
 } from "react";
-import { DateField } from "../../../../types";
 import { useFormContext } from "react-hook-form";
 import { Input } from "../Input";
-import { SchemaFormParamsContext } from "../..";
+import { DateFieldSchema, ValidationErrors } from "../../types";
+import { SchemaFormParamsContext } from "../../context";
 
 export type DateInputProps = {
     className?: string;
@@ -25,7 +25,7 @@ export type DateInputProps = {
 };
 
 export type DateInputFieldProps = {
-    schemaField: DateField;
+    fieldSchema: DateFieldSchema;
     name: string;
     onRemove?: () => void;
 };
@@ -53,26 +53,29 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
 );
 
 export const DateInputField = ({
-    schemaField,
+    fieldSchema,
     name,
     onRemove,
 }: DateInputFieldProps) => {
-    const { register } = useFormContext();
+    const {
+        register,
+        formState: { errors },
+    } = useFormContext();
     const makeHandleParams = useContext(SchemaFormParamsContext);
     const onParams = useMemo(
-        () => makeHandleParams?.(schemaField, name),
-        [makeHandleParams, name, schemaField]
+        () => makeHandleParams?.(fieldSchema, name),
+        [makeHandleParams, name, fieldSchema]
     );
 
     return (
         <DateInput
             {...register(name)}
-            // error={fieldState.error?.message}
+            error={(errors as ValidationErrors)[name]?.message}
             onParams={onParams}
             onRemove={onRemove}
-            minDate={schemaField.min}
-            maxDate={schemaField.max}
-            nullable={schemaField.nullable}
+            minDate={fieldSchema.min}
+            maxDate={fieldSchema.max}
+            nullable={fieldSchema.nullable}
         />
     );
 };

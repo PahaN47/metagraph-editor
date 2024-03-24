@@ -5,10 +5,10 @@ import {
     useContext,
     useMemo,
 } from "react";
-import { BoolField } from "../../../../types";
 import { useFormContext } from "react-hook-form";
 import { Input } from "../Input";
-import { SchemaFormParamsContext } from "../..";
+import { BoolFieldSchema, ValidationErrors } from "../../types";
+import { SchemaFormParamsContext } from "../../context";
 
 export type BoolInputProps = {
     className?: string;
@@ -24,7 +24,7 @@ export type BoolInputProps = {
 };
 
 export type BoolInputFieldProps = {
-    schemaField: BoolField;
+    fieldSchema: BoolFieldSchema;
     name: string;
     onRemove?: () => void;
 };
@@ -63,24 +63,27 @@ export const BoolInput = forwardRef<HTMLInputElement, BoolInputProps>(
 );
 
 export const BoolInputField = ({
-    schemaField,
+    fieldSchema,
     name,
     onRemove,
 }: BoolInputFieldProps) => {
-    const { register } = useFormContext();
+    const {
+        register,
+        formState: { errors },
+    } = useFormContext();
     const makeHandleParams = useContext(SchemaFormParamsContext);
     const onParams = useMemo(
-        () => makeHandleParams?.(schemaField, name),
-        [makeHandleParams, name, schemaField]
+        () => makeHandleParams?.(fieldSchema, name),
+        [makeHandleParams, name, fieldSchema]
     );
 
     return (
         <BoolInput
             {...register(name)}
-            // error={fieldState.error?.message}
+            error={(errors as ValidationErrors)[name]?.message}
             onParams={onParams}
             onRemove={onRemove}
-            nullable={schemaField.nullable}
+            nullable={fieldSchema.nullable}
         />
     );
 };
